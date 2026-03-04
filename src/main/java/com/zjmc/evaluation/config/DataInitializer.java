@@ -190,9 +190,9 @@ public class DataInitializer implements CommandLineRunner {
         category1.setSortOrder(1);
         category1 = scoreCategoryRepository.save(category1);
 
-        createScoreItem(template, category1, "组织建设", "机构设置完善，人员配备合理", 10.0, 0.10, 1);
-        createScoreItem(template, category1, "制度建设", "各项规章制度健全，执行到位", 10.0, 0.10, 2);
-        createScoreItem(template, category1, "档案管理", "档案资料完整，管理规范", 5.0, 0.05, 3);
+        createScoreItem(template, category1, "组织架构与人员配备情况", "机构设置完善，人员配备合理，岗位职责明确", 10.0, 0.10, 1);
+        createScoreItem(template, category1, "规章制度建设与执行", "各项规章制度健全，执行到位，定期修订完善", 10.0, 0.10, 2);
+        createScoreItem(template, category1, "档案资料管理规范性", "档案资料完整，分类清晰，管理规范，查阅便捷", 5.0, 0.05, 3);
 
         // 分类2：业务开展
         ScoreCategory category2 = new ScoreCategory();
@@ -201,9 +201,9 @@ public class DataInitializer implements CommandLineRunner {
         category2.setSortOrder(2);
         category2 = scoreCategoryRepository.save(category2);
 
-        createScoreItem(template, category2, "业务数量", "完成业务指标情况", 15.0, 0.15, 1);
-        createScoreItem(template, category2, "业务质量", "业务质量达标情况", 15.0, 0.15, 2);
-        createScoreItem(template, category2, "技术创新", "新技术新项目开展情况", 10.0, 0.10, 3);
+        createScoreItem(template, category2, "年度业务指标完成情况", "完成年度业务指标，工作量饱满，覆盖面广", 15.0, 0.15, 1);
+        createScoreItem(template, category2, "医疗质量控制与持续改进", "业务质量达标，质控措施有效，持续改进明显", 15.0, 0.15, 2);
+        createScoreItem(template, category2, "新技术新项目推广应用", "积极开展新技术新项目，推广应用效果显著", 10.0, 0.10, 3);
 
         // 分类3：服务质量
         ScoreCategory category3 = new ScoreCategory();
@@ -212,9 +212,9 @@ public class DataInitializer implements CommandLineRunner {
         category3.setSortOrder(3);
         category3 = scoreCategoryRepository.save(category3);
 
-        createScoreItem(template, category3, "服务态度", "服务态度良好，患者满意度高", 10.0, 0.10, 1);
-        createScoreItem(template, category3, "服务效率", "服务流程优化，效率高", 10.0, 0.10, 2);
-        createScoreItem(template, category3, "投诉处理", "投诉处理及时，整改到位", 5.0, 0.05, 3);
+        createScoreItem(template, category3, "服务态度与患者满意度", "服务态度良好，沟通有效，患者满意度高", 10.0, 0.10, 1);
+        createScoreItem(template, category3, "服务流程优化与效率提升", "服务流程优化，等候时间短，工作效率高", 10.0, 0.10, 2);
+        createScoreItem(template, category3, "投诉处理与持续改进机制", "投诉处理及时，原因分析到位，整改措施有效", 5.0, 0.05, 3);
 
         // 分类4：培训指导
         ScoreCategory category4 = new ScoreCategory();
@@ -223,8 +223,8 @@ public class DataInitializer implements CommandLineRunner {
         category4.setSortOrder(4);
         category4 = scoreCategoryRepository.save(category4);
 
-        createScoreItem(template, category4, "培训计划", "培训计划制定及执行情况", 5.0, 0.05, 1);
-        createScoreItem(template, category4, "培训效果", "培训效果显著，考核合格率高", 5.0, 0.05, 2);
+        createScoreItem(template, category4, "年度培训计划制定与执行", "培训计划科学合理，执行到位，覆盖面广", 5.0, 0.05, 1);
+        createScoreItem(template, category4, "培训效果评估与考核", "培训效果显著，考核合格率高，学员反馈良好", 5.0, 0.05, 2);
 
         System.out.println("评分表模板初始化完成");
     }

@@ -120,11 +120,11 @@ def main():
     print(f"3. 使用任务: {task['name']} (ID: {task['id']})")
     print()
     
-    # 4. 为前10个机构创建评分数据
+    # 4. 为所有机构创建评分数据
     print("4. 创建评分数据...")
-    target_institutions = institutions[:10]  # 只为前10个机构创建数据
-    target_expert_judges = expert_judges[:5]  # 使用前5个专家评委
-    target_public_judges = public_judges[:5]  # 使用前5个大众评委
+    target_institutions = institutions  # 使用所有机构
+    target_expert_judges = expert_judges[:10]  # 使用前10个专家评委
+    target_public_judges = public_judges[:10]  # 使用前10个大众评委
     
     success_count = 0
     total_count = 0
