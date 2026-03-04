@@ -119,21 +119,23 @@ public class DataInitializer implements CommandLineRunner {
 
         // 专家评委 - 每个质控中心一个（38个）
         // 注意:专家评委不关联机构,可以评审所有机构
-        String[] expertTitles = {"主任医师", "副主任医师", "主任医师", "主任医师", "副主任医师"};
         String[] expertSurnames = {"张", "李", "王", "赵", "陈", "刘", "杨", "黄", "周", "吴", 
                                    "郑", "孙", "钱", "冯", "褚", "卫", "蒋", "沈", "韩", "杨",
                                    "朱", "秦", "尤", "许", "何", "吕", "施", "张", "孔", "曹",
                                    "严", "华", "金", "魏", "陶", "姜", "戚", "谢"};
+        String[] expertTitles = {"教授", "研究员", "院长", "主任", "专家", "教授", "研究员", "主任医师"};
 
         for (int i = 0; i < qualityControlInstitutions.size(); i++) {
             Institution institution = qualityControlInstitutions.get(i);
             Judge judge = new Judge();
-            // 评委名称：机构名+专家（如"临床检验中心专家"）
-            judge.setName(institution.getName() + "专家");
+            // 评委名称：姓+职称（如"张教授"、"李研究员"、"王院长"）
+            String surname = expertSurnames[i % expertSurnames.length];
+            String title = expertTitles[i % expertTitles.length];
+            judge.setName(surname + title);
             judge.setUsername("expert" + (i + 1));
             judge.setPassword("123456");
             judge.setType(Judge.JudgeType.EXPERT);
-            judge.setTitle(expertTitles[i % expertTitles.length]);
+            judge.setTitle(title);
             // 专家评委不关联机构
             judge.setInstitution(null);
             judge.setStatus(1);

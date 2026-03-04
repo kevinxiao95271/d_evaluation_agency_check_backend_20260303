@@ -74,16 +74,16 @@ def main():
     template = get_score_template()
     
     if not tasks:
-        print("❌ 没有找到任务")
+        print("[错误] 没有找到任务")
         return
     if not institutions:
-        print("❌ 没有找到机构")
+        print("[错误] 没有找到机构")
         return
     if not judges:
-        print("❌ 没有找到评委")
+        print("[错误] 没有找到评委")
         return
     if not template:
-        print("❌ 没有找到评分模板")
+        print("[错误] 没有找到评分模板")
         return
     
     # 分离专家评委和大众评委
@@ -112,7 +112,7 @@ def main():
     
     print(f"   - 评分条目数量: {len(all_items)}")
     for item in all_items:
-        print(f"     • {item['categoryName']} - {item['name']} (满分: {item['maxScore']})")
+        print(f"     * {item['categoryName']} - {item['name']} (满分: {item['maxScore']})")
     print()
     
     # 3. 选择第一个任务
@@ -150,16 +150,16 @@ def main():
             total_count += 1
             if submit_score(task["id"], institution["id"], judge["id"], item_scores):
                 success_count += 1
-                print(f"       ✅ {judge['name']} - 提交成功")
+                print(f"       [OK] {judge['name']} - 提交成功")
             else:
-                print(f"       ❌ {judge['name']} - 提交失败")
+                print(f"       [FAIL] {judge['name']} - 提交失败")
         
         # 大众评委评分 - 大众评委有机构信息,需要同机构回避
         print(f"     大众评委评分:")
         for judge in target_public_judges:
             # 检查是否是同机构回避
             if judge.get("institutionId") == institution["id"]:
-                print(f"       ⊘ {judge['name']} - 同机构回避")
+                print(f"       [SKIP] {judge['name']} - 同机构回避")
                 continue
             
             # 为每个评分条目生成随机分数
@@ -177,9 +177,9 @@ def main():
             total_count += 1
             if submit_score(task["id"], institution["id"], judge["id"], item_scores):
                 success_count += 1
-                print(f"       ✅ {judge['name']} - 提交成功")
+                print(f"       [OK] {judge['name']} - 提交成功")
             else:
-                print(f"       ❌ {judge['name']} - 提交失败")
+                print(f"       [FAIL] {judge['name']} - 提交失败")
     
     print()
     print("=" * 60)
@@ -207,7 +207,7 @@ def main():
     
     print(f"   - 已评分机构数: {len(institution_counts)}")
     for inst_name, count in list(institution_counts.items())[:5]:
-        print(f"     • {inst_name}: {count} 条记录")
+        print(f"     * {inst_name}: {count} 条记录")
     
     print()
     print("✨ 测试数据创建完成!")
