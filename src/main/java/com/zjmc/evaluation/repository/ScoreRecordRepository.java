@@ -52,4 +52,7 @@ public interface ScoreRecordRepository extends JpaRepository<ScoreRecord, Long> 
 
     @Query("SELECT COUNT(DISTINCT sr.institution.id) FROM ScoreRecord sr WHERE sr.task.id = :taskId")
     Long countCompletedInstitutionsByTaskId(@Param("taskId") Long taskId);
+
+    @Query("SELECT COUNT(sr) FROM ScoreRecord sr WHERE sr.task.id = :taskId")
+    Long countByTaskId(@Param("taskId") Long taskId);
 }

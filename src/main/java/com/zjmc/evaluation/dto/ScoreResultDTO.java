@@ -54,6 +54,9 @@ public class ScoreResultDTO {
     @Schema(description = "排名")
     private Integer rank;
 
+    @Schema(description = "是否已有评分数据：true-已有评委打分，false-尚未评分")
+    private Boolean hasScoreData;
+
     @Schema(description = "各条目得分明细")
     private List<ItemResultDTO> itemResults;
 

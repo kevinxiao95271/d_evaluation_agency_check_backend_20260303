@@ -194,25 +194,14 @@ public class TaskServiceImpl implements TaskService {
         List<TaskDTO> list = new ArrayList<>();
         TaskDTO dto = new TaskDTO();
         dto.setId(1L);
-        dto.setName("2026年第一季度考核");
-        dto.setPeriod("2026Q1");
-        dto.setStartDate(LocalDate.of(2026, 1, 1));
-        dto.setEndDate(LocalDate.of(2026, 3, 31));
-        dto.setDescription("2026年第一季度机构考核评估");
+        dto.setName("2025年度考核");
+        dto.setPeriod("2025");
+        dto.setStartDate(LocalDate.of(2025, 1, 1));
+        dto.setEndDate(LocalDate.of(2025, 12, 31));
+        dto.setDescription("2025年度机构考核评估任务");
         dto.setIsCurrent(1);
         dto.setStatus(1);
         list.add(dto);
-
-        TaskDTO dto2 = new TaskDTO();
-        dto2.setId(2L);
-        dto2.setName("2025年第四季度考核");
-        dto2.setPeriod("2025Q4");
-        dto2.setStartDate(LocalDate.of(2025, 10, 1));
-        dto2.setEndDate(LocalDate.of(2025, 12, 31));
-        dto2.setDescription("2025年第四季度机构考核评估");
-        dto2.setIsCurrent(0);
-        dto2.setStatus(2);
-        list.add(dto2);
 
         return list;
     }
@@ -226,15 +215,15 @@ public class TaskServiceImpl implements TaskService {
             PendingTaskDTO dto = new PendingTaskDTO();
             dto.setTaskInstitutionId((long) (i + 1));
             dto.setTaskId(1L);
-            dto.setTaskName("2026年第一季度考核");
-            dto.setPeriod("2026Q1");
+            dto.setTaskName("2025年度考核");
+            dto.setPeriod("2025");
             dto.setInstitutionId((long) (i + 100));
             dto.setInstitutionName(institutionNames[i]);
             dto.setInstitutionType(types[i]);
             dto.setInstitutionTypeName(types[i].equals("QUALITY_CONTROL") ? "专业质控中心" : "技术服务类");
             dto.setMaterialDescription("请查看线下派发的考核材料");
-            dto.setStartDate(LocalDate.of(2026, 1, 1));
-            dto.setEndDate(LocalDate.of(2026, 3, 31));
+            dto.setStartDate(LocalDate.of(2025, 1, 1));
+            dto.setEndDate(LocalDate.of(2025, 12, 31));
             dto.setHasScored(i % 2 == 0);
             dto.setScoreStatus(i % 2 == 0 ? 1 : 0);
             list.add(dto);

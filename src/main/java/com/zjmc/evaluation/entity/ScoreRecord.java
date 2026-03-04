@@ -43,6 +43,10 @@ public class ScoreRecord {
     @Schema(description = "评分分数")
     private Double score;
 
+    @Column(length = 10)
+    @Schema(description = "评分模式：ITEM-逐条打分，TOTAL-直接打总分")
+    private String scoreMode;
+
     @Column(length = 500)
     @Schema(description = "评语/备注")
     private String comment;

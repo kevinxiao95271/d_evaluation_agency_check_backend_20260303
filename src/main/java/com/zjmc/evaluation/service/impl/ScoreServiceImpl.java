@@ -87,7 +87,7 @@ public class ScoreServiceImpl implements ScoreService {
         String scoreMode = dto.getScoreMode() != null ? dto.getScoreMode() : "ITEM";
 
         if ("TOTAL".equals(scoreMode) && dto.getTotalScore() != null) {
-            distributeTotalScore(task, institution, judge, dto.getTotalScore());
+            distributeTotalScore(task, institution, judge, dto.getTotalScore(), scoreMode);
         } else if (dto.getItemScores() != null) {
             for (ScoreSubmitDTO.ItemScoreDTO itemScore : dto.getItemScores()) {
                 ScoreItem item = scoreItemRepository.findById(itemScore.getItemId())
@@ -107,6 +107,7 @@ public class ScoreServiceImpl implements ScoreService {
                 record.setJudge(judge);
                 record.setItem(item);
                 record.setScore(itemScore.getScore());
+                record.setScoreMode(scoreMode);
                 record.setComment(itemScore.getComment());
                 scoreRecordRepository.save(record);
             }
@@ -114,7 +115,7 @@ public class ScoreServiceImpl implements ScoreService {
         logger.info("Score submission successful for judge {} and institution {}", judge.getName(), institution.getName());
     }
 
-    private void distributeTotalScore(Task task, Institution institution, Judge judge, Double totalScore) {
+    private void distributeTotalScore(Task task, Institution institution, Judge judge, Double totalScore, String scoreMode) {
         // 获取默认模板
         ScoreTemplate template = templateRepository.findByIsDefaultAndStatus(1, 1)
             .orElseThrow(() -> new RuntimeException("未找到默认评分模板"));
@@ -142,6 +143,7 @@ public class ScoreServiceImpl implements ScoreService {
             record.setJudge(judge);
             record.setItem(item);
             record.setScore(distributedScore);
+            record.setScoreMode(scoreMode);
             scoreRecordRepository.save(record);
         }
     }
@@ -213,6 +215,7 @@ public class ScoreServiceImpl implements ScoreService {
         result.setDirectorBonus(directorBonusScore);
         result.setSecretaryBonus(secretaryBonusScore);
         result.setFinalScore(finalScore);
+        result.setHasScoreData(!records.isEmpty());
 
         // 计算各条目平均分
         List<ScoreResultDTO.ItemResultDTO> itemResults = calculateItemResults(records, template);
@@ -334,6 +337,7 @@ public class ScoreServiceImpl implements ScoreService {
         result.setDirectorBonus(directorBonusScore);
         result.setSecretaryBonus(secretaryBonusScore);
         result.setFinalScore(finalScore);
+        result.setHasScoreData(!records.isEmpty());
 
         // 计算各条目平均分
         List<ScoreResultDTO.ItemResultDTO> itemResults = calculateItemResults(records, template);
@@ -447,8 +451,13 @@ public class ScoreServiceImpl implements ScoreService {
             submission.setJudgeName(first.getJudge().getName());
             submission.setJudgeType(first.getJudge().getType().name());
             
-            // 评分模式(默认为ITEM,因为当前都是逐条打分)
-            submission.setScoreMode("ITEM");
+            // 从记录中检测评分模式（取第一条非空值，兼容旧数据）
+            String detectedMode = group.stream()
+                .map(ScoreRecord::getScoreMode)
+                .filter(m -> m != null && !m.isEmpty())
+                .findFirst()
+                .orElse("ITEM");
+            submission.setScoreMode(detectedMode);
             
             // 计算总分
             Double totalScore = group.stream()
@@ -518,7 +527,7 @@ public class ScoreServiceImpl implements ScoreService {
     @Override
     public ScoreStatisticsDTO getScoreStatistics(Long taskId) {
         ScoreStatisticsDTO stats = new ScoreStatisticsDTO();
-        stats.setTotalScoreCount(scoreRecordRepository.count());
+        stats.setTotalScoreCount(scoreRecordRepository.countByTaskId(taskId));
         stats.setExpertJudgeCount(scoreRecordRepository.countExpertJudgesByTaskId(taskId));
         stats.setPublicJudgeCount(scoreRecordRepository.countPublicJudgesByTaskId(taskId));
         stats.setCompletedInstitutionCount(scoreRecordRepository.countCompletedInstitutionsByTaskId(taskId));
@@ -582,6 +591,7 @@ public class ScoreServiceImpl implements ScoreService {
         dto.setItemId(record.getItem().getId());
         dto.setItemName(record.getItem().getName());
         dto.setMaxScore(record.getItem().getMaxScore());
+        dto.setScoreMode(record.getScoreMode() != null ? record.getScoreMode() : "ITEM");
         if (record.getItem().getCategory() != null) {
             dto.setCategoryName(record.getItem().getCategory().getName());
         }

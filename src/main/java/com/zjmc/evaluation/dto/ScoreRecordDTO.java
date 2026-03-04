@@ -42,6 +42,9 @@ public class ScoreRecordDTO {
     @Schema(description = "分类名称")
     private String categoryName;
 
+    @Schema(description = "评分模式：ITEM-逐条打分，TOTAL-直接打总分")
+    private String scoreMode;
+
     @Schema(description = "分数")
     private Double score;
 
