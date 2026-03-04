@@ -226,10 +226,36 @@ public class ScoreServiceImpl implements ScoreService {
 
         // 获取该任务下的所有机构
         List<TaskInstitution> taskInstitutions = taskInstitutionRepository.findByTaskId(taskId);
+        
+        // 如果没有机构,直接返回空列表
+        if (taskInstitutions.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 批量获取所有评分记录,避免N+1查询
+        List<ScoreRecord> allRecords = scoreRecordRepository.findByTaskId(taskId);
+        
+        // 批量获取所有附加项
+        List<InstitutionBonus> allBonuses = bonusRepository.findByTaskId(taskId);
+        Map<Long, InstitutionBonus> bonusMap = allBonuses.stream()
+            .collect(Collectors.toMap(b -> b.getInstitution().getId(), b -> b, (a, b) -> a));
+        
+        // 获取模板
+        ScoreTemplate template = templateRepository.findByIsDefaultAndStatus(1, 1)
+            .orElseThrow(() -> new RuntimeException("未找到默认评分模板"));
+        
+        // 按机构分组评分记录
+        Map<Long, List<ScoreRecord>> recordsByInstitution = allRecords.stream()
+            .collect(Collectors.groupingBy(r -> r.getInstitution().getId()));
 
         List<ScoreResultDTO> results = new ArrayList<>();
         for (TaskInstitution ti : taskInstitutions) {
-            ScoreResultDTO result = calculateResult(taskId, ti.getInstitution().getId());
+            Long institutionId = ti.getInstitution().getId();
+            List<ScoreRecord> records = recordsByInstitution.getOrDefault(institutionId, new ArrayList<>());
+            
+            ScoreResultDTO result = calculateResultFromRecords(
+                task, ti.getInstitution(), records, template, bonusMap.get(institutionId)
+            );
             results.add(result);
         }
 
@@ -240,6 +266,78 @@ public class ScoreServiceImpl implements ScoreService {
         }
 
         return results;
+    }
+    
+    private ScoreResultDTO calculateResultFromRecords(Task task, Institution institution, 
+                                                      List<ScoreRecord> records, 
+                                                      ScoreTemplate template,
+                                                      InstitutionBonus bonus) {
+        ScoreResultDTO result = new ScoreResultDTO();
+        result.setTaskId(task.getId());
+        result.setTaskName(task.getName());
+        result.setInstitutionId(institution.getId());
+        result.setInstitutionName(institution.getName());
+        result.setInstitutionType(institution.getType().name());
+
+        // 计算专家评委平均分
+        List<ScoreRecord> expertRecords = records.stream()
+            .filter(r -> r.getJudge().getType() == Judge.JudgeType.EXPERT)
+            .collect(Collectors.toList());
+
+        Double expertAvg = calculateAverageByJudges(expertRecords, template);
+        Long expertCount = expertRecords.stream()
+            .map(r -> r.getJudge().getId())
+            .distinct()
+            .count();
+
+        // 计算大众评委平均分
+        List<ScoreRecord> publicRecords = records.stream()
+            .filter(r -> r.getJudge().getType() == Judge.JudgeType.PUBLIC)
+            .collect(Collectors.toList());
+
+        Double publicAvg = calculateAverageByJudges(publicRecords, template);
+        Long publicCount = publicRecords.stream()
+            .map(r -> r.getJudge().getId())
+            .distinct()
+            .count();
+
+        // 换算到100分制
+        Double conversionRate = 100.0 / template.getTemplateMaxScore();
+        Double expertConverted = expertAvg * conversionRate;
+        Double publicConverted = publicAvg * conversionRate;
+
+        // 计算各项贡献
+        Double expertContribution = expertConverted * expertWeight;
+        Double publicContribution = publicConverted * publicWeight;
+
+        // 获取附加项
+        if (bonus == null) {
+            bonus = new InstitutionBonus();
+        }
+
+        Integer directorBonusScore = bonus.getDirectorPresentation() != null && bonus.getDirectorPresentation() == 1 
+            ? directorBonus : 0;
+        Integer secretaryBonusScore = bonus.getSecretaryParticipation() != null && bonus.getSecretaryParticipation() == 1 
+            ? secretaryBonus : 0;
+
+        // 计算最终总分
+        Double finalScore = expertContribution + publicContribution + directorBonusScore + secretaryBonusScore;
+
+        result.setExpertAvgScore(expertAvg);
+        result.setExpertJudgeCount(expertCount);
+        result.setExpertContribution(expertContribution);
+        result.setPublicAvgScore(publicAvg);
+        result.setPublicJudgeCount(publicCount);
+        result.setPublicContribution(publicContribution);
+        result.setDirectorBonus(directorBonusScore);
+        result.setSecretaryBonus(secretaryBonusScore);
+        result.setFinalScore(finalScore);
+
+        // 计算各条目平均分
+        List<ScoreResultDTO.ItemResultDTO> itemResults = calculateItemResults(records, template);
+        result.setItemResults(itemResults);
+
+        return result;
     }
 
     @Override
