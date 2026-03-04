@@ -1,0 +1,96 @@
+{
+  "test_time": "2026-03-04T13:55:02.117433",
+  "total": 11,
+  "success": 6,
+  "failed": 5,
+  "results": [
+    {
+      "api": "GET /api/score/records",
+      "description": "获取所有评分记录",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": 0,
+      "note": ""
+    },
+    {
+      "api": "GET /api/score/records?taskId=1",
+      "description": "按任务筛选评分记录",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": 0,
+      "note": ""
+    },
+    {
+      "api": "GET /api/score/records?judgeId=1",
+      "description": "按评委筛选评分记录",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": 0,
+      "note": ""
+    },
+    {
+      "api": "GET /api/score/records?institutionId=1",
+      "description": "按机构筛选评分记录",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": 0,
+      "note": ""
+    },
+    {
+      "api": "GET /api/score/statistics?taskId=1",
+      "description": "获取任务评分统计",
+      "status": "❌ 失败",
+      "status_code": 0,
+      "data_count": "-",
+      "note": "请求超时"
+    },
+    {
+      "api": "GET /api/score/judge-stats?judgeId=1",
+      "description": "获取评委评分统计",
+      "status": "❌ 失败",
+      "status_code": 0,
+      "data_count": "-",
+      "note": "请求超时"
+    },
+    {
+      "api": "GET /api/score/institution-stats?institutionId=1",
+      "description": "获取机构评分统计",
+      "status": "❌ 失败",
+      "status_code": 0,
+      "data_count": "-",
+      "note": "请求超时"
+    },
+    {
+      "api": "GET /api/score/result?taskId=1&institutionId=1",
+      "description": "计算单个机构得分",
+      "status": "❌ 失败",
+      "status_code": 0,
+      "data_count": "-",
+      "note": "请求超时"
+    },
+    {
+      "api": "GET /api/score/results/1",
+      "description": "计算所有机构得分和排名",
+      "status": "❌ 失败",
+      "status_code": 0,
+      "data_count": "-",
+      "note": "请求超时"
+    },
+    {
+      "api": "GET /api/score/export?taskId=1",
+      "description": "导出CSV文件",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": "-",
+      "note": ""
+    },
+    {
+      "api": "GET /api/score/export/excel?taskId=1",
+      "description": "导出CSV文件(Excel别名)",
+      "status": "✅ 成功",
+      "status_code": 200,
+      "data_count": "-",
+      "note": ""
+    }
+  ]
+}
