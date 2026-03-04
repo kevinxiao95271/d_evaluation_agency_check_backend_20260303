@@ -3,6 +3,7 @@ package com.zjmc.evaluation.service.impl;
 import com.zjmc.evaluation.dto.ScoreRecordDTO;
 import com.zjmc.evaluation.dto.ScoreResultDTO;
 import com.zjmc.evaluation.dto.ScoreStatisticsDTO;
+import com.zjmc.evaluation.dto.ScoreSubmissionDTO;
 import com.zjmc.evaluation.dto.ScoreSubmitDTO;
 import com.zjmc.evaluation.entity.*;
 import com.zjmc.evaluation.repository.*;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -415,6 +417,76 @@ public class ScoreServiceImpl implements ScoreService {
     public List<ScoreRecordDTO> findScoreRecords(Long taskId, Long institutionId, Long judgeId) {
         List<ScoreRecord> records = scoreRecordRepository.findByFilters(taskId, institutionId, judgeId);
         return records.stream().map(this::convertToRecordDTO).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ScoreSubmissionDTO> findScoreSubmissions(Long taskId, Long institutionId, Long judgeId) {
+        List<ScoreRecord> records = scoreRecordRepository.findByFilters(taskId, institutionId, judgeId);
+        
+        // 按 taskId + institutionId + judgeId 分组,每组代表一次评分提交
+        Map<String, List<ScoreRecord>> groupedRecords = records.stream()
+            .collect(Collectors.groupingBy(r -> 
+                r.getTask().getId() + "_" + r.getInstitution().getId() + "_" + r.getJudge().getId()
+            ));
+        
+        List<ScoreSubmissionDTO> submissions = new ArrayList<>();
+        
+        for (List<ScoreRecord> group : groupedRecords.values()) {
+            if (group.isEmpty()) continue;
+            
+            ScoreRecord first = group.get(0);
+            ScoreSubmissionDTO submission = new ScoreSubmissionDTO();
+            
+            // 基本信息
+            submission.setId(first.getId());
+            submission.setTaskId(first.getTask().getId());
+            submission.setTaskName(first.getTask().getName());
+            submission.setInstitutionId(first.getInstitution().getId());
+            submission.setInstitutionName(first.getInstitution().getName());
+            submission.setJudgeId(first.getJudge().getId());
+            submission.setJudgeName(first.getJudge().getName());
+            submission.setJudgeType(first.getJudge().getType().name());
+            
+            // 评分模式(默认为ITEM,因为当前都是逐条打分)
+            submission.setScoreMode("ITEM");
+            
+            // 计算总分
+            Double totalScore = group.stream()
+                .mapToDouble(ScoreRecord::getScore)
+                .sum();
+            submission.setTotalScore(totalScore);
+            
+            // 提交时间(使用最早的创建时间)
+            LocalDateTime submitTime = group.stream()
+                .map(ScoreRecord::getCreateTime)
+                .min(LocalDateTime::compareTo)
+                .orElse(first.getCreateTime());
+            submission.setSubmitTime(submitTime);
+            
+            // 评分条目明细
+            List<ScoreSubmissionDTO.ItemScoreDetail> itemScores = group.stream()
+                .map(record -> {
+                    ScoreSubmissionDTO.ItemScoreDetail detail = new ScoreSubmissionDTO.ItemScoreDetail();
+                    detail.setId(record.getId());
+                    detail.setItemId(record.getItem().getId());
+                    detail.setItemName(record.getItem().getName());
+                    detail.setCategoryName(record.getItem().getCategory() != null ? 
+                        record.getItem().getCategory().getName() : "");
+                    detail.setScore(record.getScore());
+                    detail.setMaxScore(record.getItem().getMaxScore());
+                    detail.setComment(record.getComment());
+                    return detail;
+                })
+                .collect(Collectors.toList());
+            submission.setItemScores(itemScores);
+            
+            submissions.add(submission);
+        }
+        
+        // 按提交时间倒序排序
+        submissions.sort((a, b) -> b.getSubmitTime().compareTo(a.getSubmitTime()));
+        
+        return submissions;
     }
 
     @Override

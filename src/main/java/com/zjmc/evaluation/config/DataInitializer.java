@@ -118,6 +118,7 @@ public class DataInitializer implements CommandLineRunner {
             Institution.InstitutionType.QUALITY_CONTROL, 1);
 
         // 专家评委 - 每个质控中心一个（38个）
+        // 注意:专家评委不关联机构,可以评审所有机构
         String[] expertTitles = {"主任医师", "副主任医师", "主任医师", "主任医师", "副主任医师"};
         String[] expertSurnames = {"张", "李", "王", "赵", "陈", "刘", "杨", "黄", "周", "吴", 
                                    "郑", "孙", "钱", "冯", "褚", "卫", "蒋", "沈", "韩", "杨",
@@ -133,8 +134,8 @@ public class DataInitializer implements CommandLineRunner {
             judge.setPassword("123456");
             judge.setType(Judge.JudgeType.EXPERT);
             judge.setTitle(expertTitles[i % expertTitles.length]);
-            // 关联对应的质控中心
-            judge.setInstitution(institution);
+            // 专家评委不关联机构
+            judge.setInstitution(null);
             judge.setStatus(1);
             judgeRepository.save(judge);
         }

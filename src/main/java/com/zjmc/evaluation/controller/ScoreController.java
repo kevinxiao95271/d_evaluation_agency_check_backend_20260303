@@ -4,6 +4,7 @@ import com.zjmc.evaluation.common.Result;
 import com.zjmc.evaluation.dto.ScoreRecordDTO;
 import com.zjmc.evaluation.dto.ScoreResultDTO;
 import com.zjmc.evaluation.dto.ScoreStatisticsDTO;
+import com.zjmc.evaluation.dto.ScoreSubmissionDTO;
 import com.zjmc.evaluation.dto.ScoreSubmitDTO;
 import com.zjmc.evaluation.service.ScoreService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,12 +41,21 @@ public class ScoreController {
     }
 
     @GetMapping("/records")
-    @Operation(summary = "获取评分记录列表", description = "支持按评委、机构、任务筛选评分记录")
+    @Operation(summary = "获取评分记录列表", description = "支持按评委、机构、任务筛选评分记录(条目明细级别)")
     public Result<List<ScoreRecordDTO>> findScoreRecords(
             @Parameter(description = "任务ID") @RequestParam(required = false) Long taskId,
             @Parameter(description = "机构ID") @RequestParam(required = false) Long institutionId,
             @Parameter(description = "评委ID") @RequestParam(required = false) Long judgeId) {
         return Result.success(scoreService.findScoreRecords(taskId, institutionId, judgeId));
+    }
+    
+    @GetMapping("/submissions")
+    @Operation(summary = "获取评分提交记录列表", description = "支持按评委、机构、任务筛选评分提交记录(汇总级别,包含明细)")
+    public Result<List<ScoreSubmissionDTO>> findScoreSubmissions(
+            @Parameter(description = "任务ID") @RequestParam(required = false) Long taskId,
+            @Parameter(description = "机构ID") @RequestParam(required = false) Long institutionId,
+            @Parameter(description = "评委ID") @RequestParam(required = false) Long judgeId) {
+        return Result.success(scoreService.findScoreSubmissions(taskId, institutionId, judgeId));
     }
 
     @GetMapping("/record/{id}")

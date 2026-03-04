@@ -3,6 +3,7 @@ package com.zjmc.evaluation.service;
 import com.zjmc.evaluation.dto.ScoreRecordDTO;
 import com.zjmc.evaluation.dto.ScoreResultDTO;
 import com.zjmc.evaluation.dto.ScoreStatisticsDTO;
+import com.zjmc.evaluation.dto.ScoreSubmissionDTO;
 import com.zjmc.evaluation.dto.ScoreSubmitDTO;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public interface ScoreService {
     List<ScoreResultDTO> getResultsWithData(Long taskId);
 
     List<ScoreRecordDTO> findScoreRecords(Long taskId, Long institutionId, Long judgeId);
+    
+    List<ScoreSubmissionDTO> findScoreSubmissions(Long taskId, Long institutionId, Long judgeId);
 
     ScoreRecordDTO findRecordById(Long recordId);
 
