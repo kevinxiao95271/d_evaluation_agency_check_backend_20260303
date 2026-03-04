@@ -1,0 +1,55 @@
+server:
+  port: 5031
+
+spring:
+  application:
+    name: evaluation-agency-check
+  
+  datasource:
+    url: jdbc:mysql://gz-cdb-bq7gk3k5.sql.tencentcdb.com:63606/d_evaluation_agency_check_20260303?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: Yiguo9527_
+  
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# OpenAPI / Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+  info:
+    title: 浙江医管中心考核评估系统API
+    description: 机构考核评估、评分管理、结果统计
+    version: 1.0.0
+    contact:
+      name: ZJMC
+
+# 系统配置
+evaluation:
+  # 系统总分配置（默认45分）
+  total-score: 45
+  # 专家权重（70%）
+  expert-weight: 0.7
+  # 大众评委权重（20%）
+  public-weight: 0.2
+  # 主任演讲加分
+  director-bonus: 8
+  # 会务秘书加分
+  secretary-bonus: 2

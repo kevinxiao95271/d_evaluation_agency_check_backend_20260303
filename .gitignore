@@ -1,0 +1,10 @@
+target/
+*.log
+*.err
+compile_output*.txt
+.idea/
+*.iml
+.settings/
+.classpath
+.project
+.DS_Store
