@@ -1,5 +1,6 @@
 package com.zjmc.evaluation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -38,6 +39,7 @@ public class ScoreSubmissionDTO {
     private String scoreMode;
 
     @Schema(description = "总分")
+    @JsonFormat(pattern = "0.00")
     private Double totalScore;
 
     @Schema(description = "提交时间")
@@ -63,9 +65,11 @@ public class ScoreSubmissionDTO {
         private String categoryName;
 
         @Schema(description = "分数")
+        @JsonFormat(pattern = "0.00")
         private Double score;
 
         @Schema(description = "满分")
+        @JsonFormat(pattern = "0.00")
         private Double maxScore;
 
         @Schema(description = "评语/备注")

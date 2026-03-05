@@ -1,5 +1,6 @@
 package com.zjmc.evaluation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,21 +26,25 @@ public class ScoreResultDTO {
     private String institutionType;
 
     @Schema(description = "专家评委平均分（换算前）")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
     private Double expertAvgScore;
 
     @Schema(description = "专家评委人数")
     private Long expertJudgeCount;
 
-    @Schema(description = "专家分贡献（70%权重）")
+    @Schema(description = "专家分贡献（70% 权重）")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
     private Double expertContribution;
 
     @Schema(description = "大众评委平均分（换算前）")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
     private Double publicAvgScore;
 
     @Schema(description = "大众评委人数")
     private Long publicJudgeCount;
 
-    @Schema(description = "大众分贡献（20%权重）")
+    @Schema(description = "大众分贡献（20% 权重）")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
     private Double publicContribution;
 
     @Schema(description = "主任演讲加分（8分）")
@@ -48,7 +53,8 @@ public class ScoreResultDTO {
     @Schema(description = "会务秘书加分（2分）")
     private Integer secretaryBonus;
 
-    @Schema(description = "最终总分（满分100）")
+    @Schema(description = "最终总分（满分 100）")
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
     private Double finalScore;
 
     @Schema(description = "排名")
@@ -61,22 +67,32 @@ public class ScoreResultDTO {
     private List<ItemResultDTO> itemResults;
 
     @Data
-    @Schema(description = "条目结果DTO")
+    @Schema(description = "条目结果 DTO")
     public static class ItemResultDTO {
-
-        @Schema(description = "条目ID")
+    
+        @Schema(description = "条目 ID")
         private Long itemId;
-
+    
         @Schema(description = "条目名称")
         private String itemName;
-
+    
         @Schema(description = "所属分类名称")
         private String categoryName;
-
+    
         @Schema(description = "条目满分")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
         private Double maxScore;
-
-        @Schema(description = "平均分")
+    
+        @Schema(description = "专家评委平均分")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
+        private Double expertAvgScore;
+    
+        @Schema(description = "大众评委平均分")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
+        private Double publicAvgScore;
+    
+        @Schema(description = "总体平均分")
+        @com.fasterxml.jackson.annotation.JsonFormat(pattern = "#.00")
         private Double avgScore;
     }
 }

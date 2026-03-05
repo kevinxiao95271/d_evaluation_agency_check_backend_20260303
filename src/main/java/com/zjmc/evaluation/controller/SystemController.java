@@ -1,8 +1,10 @@
 package com.zjmc.evaluation.controller;
 
 import com.zjmc.evaluation.common.Result;
+import com.zjmc.evaluation.repository.SystemConfigRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +27,21 @@ public class SystemController {
     @Value("${evaluation.public-weight:0.2}")
     private Double publicWeight;
 
-    @Value("${evaluation.director-bonus:8}")
-    private Integer directorBonus;
+    @Autowired
+    private SystemConfigRepository systemConfigRepository;
 
-    @Value("${evaluation.secretary-bonus:2}")
-    private Integer secretaryBonus;
+    // 从数据库读取加分配置，如果不存在则使用默认值
+    private Integer getDirectorBonus() {
+        return systemConfigRepository.findByConfigKey("director_bonus")
+            .map(config -> Integer.parseInt(config.getConfigValue()))
+            .orElse(8);
+    }
+
+    private Integer getSecretaryBonus() {
+        return systemConfigRepository.findByConfigKey("secretary_bonus")
+            .map(config -> Integer.parseInt(config.getConfigValue()))
+            .orElse(2);
+    }
 
     @GetMapping("/config")
     @Operation(summary = "获取系统配置", description = "获取系统评分配置参数")
@@ -38,8 +50,8 @@ public class SystemController {
         config.put("totalScore", totalScore);
         config.put("expertWeight", expertWeight);
         config.put("publicWeight", publicWeight);
-        config.put("directorBonus", directorBonus);
-        config.put("secretaryBonus", secretaryBonus);
+        config.put("directorBonus", getDirectorBonus());
+        config.put("secretaryBonus", getSecretaryBonus());
         config.put("expertWeightPercent", (int)(expertWeight * 100) + "%");
         config.put("publicWeightPercent", (int)(publicWeight * 100) + "%");
         return Result.success(config);

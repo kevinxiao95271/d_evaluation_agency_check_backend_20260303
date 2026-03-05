@@ -44,6 +44,7 @@ public class InstitutionBonusServiceImpl implements InstitutionBonusService {
 
         bonus.setTask(task);
         bonus.setInstitution(institution);
+        // 如果传入 null，默认为 0（未勾选），需要前端明确传 1 才表示勾选
         bonus.setDirectorPresentation(dto.getDirectorPresentation() != null ? dto.getDirectorPresentation() : 0);
         bonus.setSecretaryParticipation(dto.getSecretaryParticipation() != null ? dto.getSecretaryParticipation() : 0);
         bonus.setFilledBy(dto.getFilledBy());
@@ -57,7 +58,7 @@ public class InstitutionBonusServiceImpl implements InstitutionBonusService {
     public InstitutionBonusDTO findByTaskIdAndInstitutionId(Long taskId, Long institutionId) {
         InstitutionBonus bonus = bonusRepository.findByTaskIdAndInstitutionId(taskId, institutionId)
             .orElseGet(() -> {
-                // 返回空对象
+                // 如果没有记录，返回空对象（值为 0，表示未勾选）
                 InstitutionBonus empty = new InstitutionBonus();
                 empty.setDirectorPresentation(0);
                 empty.setSecretaryParticipation(0);
@@ -74,11 +75,8 @@ public class InstitutionBonusServiceImpl implements InstitutionBonusService {
 
     @Override
     public List<InstitutionBonusDTO> findByTaskIdWithData(Long taskId) {
-        List<InstitutionBonusDTO> bonuses = findByTaskId(taskId);
-        if (bonuses.isEmpty()) {
-            return getDefaultBonuses(taskId);
-        }
-        return bonuses;
+        // 直接返回数据库中的数据，不添加默认值
+        return findByTaskId(taskId);
     }
 
     private InstitutionBonusDTO convertToDTO(InstitutionBonus bonus) {
@@ -92,29 +90,15 @@ public class InstitutionBonusServiceImpl implements InstitutionBonusService {
             dto.setInstitutionId(bonus.getInstitution().getId());
             dto.setInstitutionName(bonus.getInstitution().getName());
         }
+        // 确保字段不为 null
+        if (dto.getDirectorPresentation() == null) {
+            dto.setDirectorPresentation(0);
+        }
+        if (dto.getSecretaryParticipation() == null) {
+            dto.setSecretaryParticipation(0);
+        }
         return dto;
     }
 
-    private List<InstitutionBonusDTO> getDefaultBonuses(Long taskId) {
-        List<InstitutionBonusDTO> list = new ArrayList<>();
-        String[][] data = {
-            {"1", "临床检验中心", "1", "1"},
-            {"2", "护理质控中心", "0", "1"},
-            {"3", "省防盲指导中心", "1", "0"},
-            {"4", "省骨科技术指导中心", "0", "0"},
-        };
-
-        for (String[] item : data) {
-            InstitutionBonusDTO dto = new InstitutionBonusDTO();
-            dto.setId((long) (item[0].hashCode()));
-            dto.setTaskId(taskId);
-            dto.setInstitutionId(Long.parseLong(item[0]));
-            dto.setInstitutionName(item[1]);
-            dto.setDirectorPresentation(Integer.parseInt(item[2]));
-            dto.setSecretaryParticipation(Integer.parseInt(item[3]));
-            dto.setFilledBy("管理员");
-            list.add(dto);
-        }
-        return list;
-    }
+    // 删除不再使用的 getDefaultBonuses 方法
 }

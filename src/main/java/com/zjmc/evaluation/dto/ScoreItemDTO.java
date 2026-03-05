@@ -1,5 +1,6 @@
 package com.zjmc.evaluation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,10 +23,12 @@ public class ScoreItemDTO {
 
     @NotNull(message = "条目满分值不能为空")
     @Schema(description = "条目满分值", required = true)
+    @JsonFormat(pattern = "0.00")
     private Double maxScore;
 
     @NotNull(message = "权重不能为空")
     @Schema(description = "权重（用于总分自动分配）", required = true)
+    @JsonFormat(pattern = "0.00")
     private Double weight;
 
     @NotNull(message = "排序号不能为空")

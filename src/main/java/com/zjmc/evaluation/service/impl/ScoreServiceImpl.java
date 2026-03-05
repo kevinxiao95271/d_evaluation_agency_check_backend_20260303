@@ -54,17 +54,27 @@ public class ScoreServiceImpl implements ScoreService {
     @Autowired
     private TaskInstitutionRepository taskInstitutionRepository;
 
+    @Autowired
+    private SystemConfigRepository systemConfigRepository;
+
     @Value("${evaluation.expert-weight:0.7}")
     private Double expertWeight;
 
     @Value("${evaluation.public-weight:0.2}")
     private Double publicWeight;
 
-    @Value("${evaluation.director-bonus:8}")
-    private Integer directorBonus;
+    // 从数据库读取加分配置，如果不存在则使用默认值
+    private Integer getDirectorBonus() {
+        return systemConfigRepository.findByConfigKey("director_bonus")
+            .map(config -> Integer.parseInt(config.getConfigValue()))
+            .orElse(8);
+    }
 
-    @Value("${evaluation.secretary-bonus:2}")
-    private Integer secretaryBonus;
+    private Integer getSecretaryBonus() {
+        return systemConfigRepository.findByConfigKey("secretary_bonus")
+            .map(config -> Integer.parseInt(config.getConfigValue()))
+            .orElse(2);
+    }
 
     @Override
     @Transactional
@@ -199,22 +209,22 @@ public class ScoreServiceImpl implements ScoreService {
             .orElse(new InstitutionBonus());
 
         Integer directorBonusScore = bonus.getDirectorPresentation() != null && bonus.getDirectorPresentation() == 1 
-            ? directorBonus : 0;
+            ? getDirectorBonus() : 0;
         Integer secretaryBonusScore = bonus.getSecretaryParticipation() != null && bonus.getSecretaryParticipation() == 1 
-            ? secretaryBonus : 0;
+            ? getSecretaryBonus() : 0;
 
         // 计算最终总分
         Double finalScore = expertContribution + publicContribution + directorBonusScore + secretaryBonusScore;
 
-        result.setExpertAvgScore(expertAvg);
+        result.setExpertAvgScore(roundScore(expertAvg));
         result.setExpertJudgeCount(expertCount);
-        result.setExpertContribution(expertContribution);
-        result.setPublicAvgScore(publicAvg);
+        result.setExpertContribution(roundScore(expertContribution));
+        result.setPublicAvgScore(roundScore(publicAvg));
         result.setPublicJudgeCount(publicCount);
-        result.setPublicContribution(publicContribution);
+        result.setPublicContribution(roundScore(publicContribution));
         result.setDirectorBonus(directorBonusScore);
         result.setSecretaryBonus(secretaryBonusScore);
-        result.setFinalScore(finalScore);
+        result.setFinalScore(roundScore(finalScore));
         result.setHasScoreData(!records.isEmpty());
 
         // 计算各条目平均分
@@ -321,22 +331,22 @@ public class ScoreServiceImpl implements ScoreService {
         }
 
         Integer directorBonusScore = bonus.getDirectorPresentation() != null && bonus.getDirectorPresentation() == 1 
-            ? directorBonus : 0;
+            ? getDirectorBonus() : 0;
         Integer secretaryBonusScore = bonus.getSecretaryParticipation() != null && bonus.getSecretaryParticipation() == 1 
-            ? secretaryBonus : 0;
+            ? getSecretaryBonus() : 0;
 
         // 计算最终总分
         Double finalScore = expertContribution + publicContribution + directorBonusScore + secretaryBonusScore;
 
-        result.setExpertAvgScore(expertAvg);
+        result.setExpertAvgScore(roundScore(expertAvg));
         result.setExpertJudgeCount(expertCount);
-        result.setExpertContribution(expertContribution);
-        result.setPublicAvgScore(publicAvg);
+        result.setExpertContribution(roundScore(expertContribution));
+        result.setPublicAvgScore(roundScore(publicAvg));
         result.setPublicJudgeCount(publicCount);
-        result.setPublicContribution(publicContribution);
+        result.setPublicContribution(roundScore(publicContribution));
         result.setDirectorBonus(directorBonusScore);
         result.setSecretaryBonus(secretaryBonusScore);
-        result.setFinalScore(finalScore);
+        result.setFinalScore(roundScore(finalScore));
         result.setHasScoreData(!records.isEmpty());
 
         // 计算各条目平均分
@@ -378,43 +388,100 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     private List<ScoreResultDTO.ItemResultDTO> calculateItemResults(List<ScoreRecord> records, ScoreTemplate template) {
-        Map<Long, List<ScoreRecord>> itemRecords = records.stream()
+        // 获取模板中的所有条目，确保即使没有评分记录的条目也会显示
+        List<ScoreItem> allItems = scoreItemRepository.findByTemplateIdAndStatusOrderBySortOrderAsc(
+            template.getId(), 1);
+        
+        // 将评分记录按 itemId 分组
+        Map<Long, List<ScoreRecord>> itemRecordsMap = records.stream()
             .collect(Collectors.groupingBy(r -> r.getItem().getId()));
 
         List<ScoreResultDTO.ItemResultDTO> results = new ArrayList<>();
-        for (Map.Entry<Long, List<ScoreRecord>> entry : itemRecords.entrySet()) {
-            ScoreItem item = entry.getValue().get(0).getItem();
-            List<ScoreRecord> itemRecs = entry.getValue();
-
-            // 按评委分组计算平均分
-            Map<Long, List<ScoreRecord>> judgeRecs = itemRecs.stream()
-                .collect(Collectors.groupingBy(r -> r.getJudge().getId()));
-
-            List<Double> judgeScores = new ArrayList<>();
-            for (List<ScoreRecord> recs : judgeRecs.values()) {
-                Double avg = recs.stream().mapToDouble(ScoreRecord::getScore).average().orElse(0.0);
-                judgeScores.add(avg);
-            }
-
-            Double finalAvg;
-            if (judgeScores.size() <= 2) {
-                finalAvg = judgeScores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            } else {
-                Collections.sort(judgeScores);
-                List<Double> trimmed = judgeScores.subList(1, judgeScores.size() - 1);
-                finalAvg = trimmed.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            }
-
+        
+        // 遍历所有模板条目，确保补齐所有条目
+        for (ScoreItem item : allItems) {
+            List<ScoreRecord> itemRecords = itemRecordsMap.getOrDefault(item.getId(), new ArrayList<>());
+            
             ScoreResultDTO.ItemResultDTO dto = new ScoreResultDTO.ItemResultDTO();
             dto.setItemId(item.getId());
             dto.setItemName(item.getName());
             dto.setCategoryName(item.getCategory() != null ? item.getCategory().getName() : "");
             dto.setMaxScore(item.getMaxScore());
-            dto.setAvgScore(finalAvg);
+            
+            if (itemRecords.isEmpty()) {
+                // 无评分记录时，所有分数为 0
+                dto.setExpertAvgScore(0.0);
+                dto.setPublicAvgScore(0.0);
+                dto.setAvgScore(0.0);
+            } else {
+                // 分离专家和大众的评分记录
+                List<ScoreRecord> expertRecords = itemRecords.stream()
+                    .filter(r -> r.getJudge().getType() == Judge.JudgeType.EXPERT)
+                    .collect(Collectors.toList());
+                
+                List<ScoreRecord> publicRecords = itemRecords.stream()
+                    .filter(r -> r.getJudge().getType() == Judge.JudgeType.PUBLIC)
+                    .collect(Collectors.toList());
+                
+                // 计算专家平均分（按评委去重后平均）
+                Double expertAvg = calculateItemAverageByJudges(expertRecords);
+                dto.setExpertAvgScore(expertAvg);
+                
+                // 计算大众平均分（按评委去重后平均）
+                Double publicAvg = calculateItemAverageByJudges(publicRecords);
+                dto.setPublicAvgScore(publicAvg);
+                
+                // 计算总体平均分（所有评委）
+                Double overallAvg = calculateItemAverageByJudges(itemRecords);
+                dto.setAvgScore(overallAvg);
+            }
+            
             results.add(dto);
         }
 
         return results;
+    }
+    
+    /**
+     * 保留两位小数
+     */
+    private Double roundScore(Double score) {
+        if (score == null) {
+            return null;
+        }
+        return Math.round(score * 100.0) / 100.0;
+    }
+    
+    /**
+     * 计算条目的平均分（按评委去重，支持去头去尾）
+     */
+    private Double calculateItemAverageByJudges(List<ScoreRecord> records) {
+        if (records.isEmpty()) {
+            return 0.0;
+        }
+
+        // 按评委分组，计算每个评委的平均分
+        Map<Long, List<ScoreRecord>> judgeRecords = records.stream()
+            .collect(Collectors.groupingBy(r -> r.getJudge().getId()));
+
+        List<Double> judgeScores = new ArrayList<>();
+        for (List<ScoreRecord> recs : judgeRecords.values()) {
+            Double avg = recs.stream().mapToDouble(ScoreRecord::getScore).average().orElse(0.0);
+            judgeScores.add(avg);
+        }
+
+        Double finalAvg;
+        if (judgeScores.size() <= 2) {
+            // 评委数量不足 3 人，直接取平均
+            finalAvg = judgeScores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        } else {
+            // 去掉最高分和最低分
+            Collections.sort(judgeScores);
+            List<Double> trimmed = judgeScores.subList(1, judgeScores.size() - 1);
+            finalAvg = trimmed.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        }
+        
+        return roundScore(finalAvg);
     }
 
     @Override
@@ -463,7 +530,7 @@ public class ScoreServiceImpl implements ScoreService {
             Double totalScore = group.stream()
                 .mapToDouble(ScoreRecord::getScore)
                 .sum();
-            submission.setTotalScore(totalScore);
+            submission.setTotalScore(roundScore(totalScore));
             
             // 提交时间(使用最早的创建时间)
             LocalDateTime submitTime = group.stream()
@@ -481,8 +548,8 @@ public class ScoreServiceImpl implements ScoreService {
                     detail.setItemName(record.getItem().getName());
                     detail.setCategoryName(record.getItem().getCategory() != null ? 
                         record.getItem().getCategory().getName() : "");
-                    detail.setScore(record.getScore());
-                    detail.setMaxScore(record.getItem().getMaxScore());
+                    detail.setScore(roundScore(record.getScore()));
+                    detail.setMaxScore(roundScore(record.getItem().getMaxScore()));
                     detail.setComment(record.getComment());
                     return detail;
                 })
@@ -543,7 +610,13 @@ public class ScoreServiceImpl implements ScoreService {
                 r -> r.getItem().getCategory().getName(),
                 Collectors.averagingDouble(ScoreRecord::getScore)
             ));
-        stats.setCategoryAverages(categoryAvgs);
+        // 对分类平均分进行四舍五入
+        Map<String, Double> roundedCategoryAvgs = categoryAvgs.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> roundScore(entry.getValue())
+            ));
+        stats.setCategoryAverages(roundedCategoryAvgs);
 
         return stats;
     }
@@ -573,7 +646,13 @@ public class ScoreServiceImpl implements ScoreService {
                 r -> r.getItem().getCategory().getName(),
                 Collectors.averagingDouble(ScoreRecord::getScore)
             ));
-        stats.setCategoryAverages(categoryAvgs);
+        // 对分类平均分进行四舍五入
+        Map<String, Double> roundedCategoryAvgs = categoryAvgs.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> roundScore(entry.getValue())
+            ));
+        stats.setCategoryAverages(roundedCategoryAvgs);
         
         return stats;
     }
@@ -590,7 +669,7 @@ public class ScoreServiceImpl implements ScoreService {
         dto.setJudgeType(record.getJudge().getType().name());
         dto.setItemId(record.getItem().getId());
         dto.setItemName(record.getItem().getName());
-        dto.setMaxScore(record.getItem().getMaxScore());
+        dto.setMaxScore(roundScore(record.getItem().getMaxScore()));
         dto.setScoreMode(record.getScoreMode() != null ? record.getScoreMode() : "ITEM");
         if (record.getItem().getCategory() != null) {
             dto.setCategoryName(record.getItem().getCategory().getName());

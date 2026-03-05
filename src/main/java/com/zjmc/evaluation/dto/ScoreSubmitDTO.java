@@ -1,5 +1,6 @@
 package com.zjmc.evaluation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,7 +26,8 @@ public class ScoreSubmitDTO {
     @Schema(description = "评分模式：ITEM-逐条打分, TOTAL-直接打总分")
     private String scoreMode;
 
-    @Schema(description = "直接打总分（当scoreMode=TOTAL时使用）")
+    @Schema(description = "直接打总分（当 scoreMode=TOTAL 时使用）")
+    @JsonFormat(pattern = "0.00")
     private Double totalScore;
 
     @Schema(description = "逐条评分列表（当scoreMode=ITEM时使用）")
@@ -41,6 +43,7 @@ public class ScoreSubmitDTO {
 
         @NotNull(message = "评分不能为空")
         @Schema(description = "评分分数", required = true)
+        @JsonFormat(pattern = "0.00")
         private Double score;
 
         @Schema(description = "评语/备注")

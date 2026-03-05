@@ -30,12 +30,12 @@ public class InstitutionBonus {
     private Institution institution;
 
     @Column(nullable = false)
-    @Schema(description = "是否有主任/副主任到场演讲：0-否，1-是（+8分）")
-    private Integer directorPresentation = 0;
+    @Schema(description = "是否有主任/副主任到场演讲：0-否，1-是（+8 分）")
+    private Integer directorPresentation = 1;
 
     @Column(nullable = false)
-    @Schema(description = "是否有人参与会务秘书：0-否，1-是（+2分）")
-    private Integer secretaryParticipation = 0;
+    @Schema(description = "是否有人参与会务秘书：0-否，1-是（+2 分）")
+    private Integer secretaryParticipation = 1;
 
     @Column(length = 50)
     @Schema(description = "填写人")

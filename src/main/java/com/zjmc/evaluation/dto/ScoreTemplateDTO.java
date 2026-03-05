@@ -1,5 +1,6 @@
 package com.zjmc.evaluation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -19,11 +20,13 @@ public class ScoreTemplateDTO {
     private String name;
 
     @NotNull(message = "评分表满分值不能为空")
-    @Schema(description = "评分表满分值（如100分）", required = true)
+    @Schema(description = "评分表满分值（如 100 分）", required = true)
+    @JsonFormat(pattern = "0.00")
     private Double templateMaxScore;
 
     @NotNull(message = "系统总分值不能为空")
-    @Schema(description = "系统总分值（如45分）", required = true)
+    @Schema(description = "系统总分值（如 45 分）", required = true)
+    @JsonFormat(pattern = "0.00")
     private Double systemTotalScore;
 
     @Schema(description = "是否默认模板：0-否，1-是")

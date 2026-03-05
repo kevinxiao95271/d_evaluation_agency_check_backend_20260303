@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/system-config")
@@ -92,6 +94,51 @@ public class SystemConfigController {
         config.setConfigValue(String.valueOf(score));
         config.setDescription("考核评估系统的总分值");
         configRepository.save(config);
+        return Result.success();
+    }
+
+    @GetMapping("/bonus-config")
+    @Operation(summary = "获取加分配置", description = "获取主任演讲和会务秘书的加分分值")
+    public Result<Map<String, Object>> getBonusConfig() {
+        Map<String, Object> config = new HashMap<>();
+        Integer directorBonus = configRepository.findByConfigKey("director_bonus")
+            .map(c -> Integer.parseInt(c.getConfigValue()))
+            .orElse(8);
+        Integer secretaryBonus = configRepository.findByConfigKey("secretary_bonus")
+            .map(c -> Integer.parseInt(c.getConfigValue()))
+            .orElse(2);
+        
+        config.put("directorBonus", directorBonus);
+        config.put("secretaryBonus", secretaryBonus);
+        return Result.success(config);
+    }
+
+    @PutMapping("/bonus-config")
+    @Operation(summary = "更新加分配置", description = "更新主任演讲和会务秘书的加分分值")
+    public Result<Void> setBonusConfig(
+            @Parameter(description = "主任演讲加分") @RequestParam(required = false) Integer directorBonus,
+            @Parameter(description = "秘书参与加分") @RequestParam(required = false) Integer secretaryBonus) {
+        
+        if (directorBonus != null) {
+            SystemConfig config = configRepository.findByConfigKey("director_bonus")
+                .orElse(new SystemConfig());
+            config.setConfigKey("director_bonus");
+            config.setConfigName("主任演讲加分");
+            config.setConfigValue(String.valueOf(directorBonus));
+            config.setDescription("主任/副主任到场演讲的加分分值");
+            configRepository.save(config);
+        }
+        
+        if (secretaryBonus != null) {
+            SystemConfig config = configRepository.findByConfigKey("secretary_bonus")
+                .orElse(new SystemConfig());
+            config.setConfigKey("secretary_bonus");
+            config.setConfigName("秘书参与加分");
+            config.setConfigValue(String.valueOf(secretaryBonus));
+            config.setDescription("会务秘书参与的加分分值");
+            configRepository.save(config);
+        }
+        
         return Result.success();
     }
 }
