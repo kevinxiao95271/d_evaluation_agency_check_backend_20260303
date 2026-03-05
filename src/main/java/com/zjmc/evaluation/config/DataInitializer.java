@@ -246,13 +246,13 @@ public class DataInitializer implements CommandLineRunner {
     private void initTask() {
         System.out.println("初始化任务数据...");
 
-        // 创建2026Q1任务
+        // 创建2025年度任务
         Task task = new Task();
-        task.setName("2026年第一季度考核");
-        task.setPeriod("2026Q1");
-        task.setStartDate(LocalDate.of(2026, 1, 1));
-        task.setEndDate(LocalDate.of(2026, 3, 31));
-        task.setDescription("2026年第一季度机构考核评估任务");
+        task.setName("2025年度考核");
+        task.setPeriod("2025");
+        task.setStartDate(LocalDate.of(2025, 1, 1));
+        task.setEndDate(LocalDate.of(2025, 12, 31));
+        task.setDescription("2025年度机构考核评估任务");
         task.setIsCurrent(1);
         task.setStatus(1);
         task = taskRepository.save(task);

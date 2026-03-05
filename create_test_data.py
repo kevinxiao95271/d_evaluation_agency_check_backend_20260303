@@ -210,7 +210,7 @@ def main():
         print(f"     * {inst_name}: {count} 条记录")
     
     print()
-    print("✨ 测试数据创建完成!")
+    print("OK: 测试数据创建完成!")
     print()
     print("现在可以测试以下API:")
     print(f"  - GET /api/score/records?taskId={task['id']}")
